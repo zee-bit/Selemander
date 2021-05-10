@@ -18,12 +18,12 @@ from styles import (
 from config import _is_initialized, _write_selemrc, _parse_selemrc
 
 # Create an Options object and pass headless argument
-# ch_ops = Options()
-# ch_ops.add_argument("--headless")
+ch_ops = Options()
+ch_ops.add_argument("--headless")
 
 # Instantiate a Chrome driver and pass the URL
-# driver = webdriver.Chrome(options=ch_ops)
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=ch_ops)
+# driver = webdriver.Chrome()
 driver.implicitly_wait(10)
 driver.get('https://teams.microsoft.com/')
 assert "Sign in to your account" in driver.title
@@ -110,7 +110,15 @@ else:
     # print(email, passwd)
     is_creds_stored = '\n' + _write_selemrc(email, passwd)
     styled_warning(is_creds_stored)
-    
 
-styled_success("\nAuthentication successfull. You are now logged in!!")
+styled_success("\nAuthentication successful. You are now logged in!!")
+
+no_btn = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.ID, "idBtn_Back"))
+)
+no_btn_click = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.ID, "idBtn_Back"))
+).click()
+print(no_btn_click.get_attribute('value'))
+
 driver.quit()
