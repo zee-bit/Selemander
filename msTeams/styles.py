@@ -13,3 +13,12 @@ def in_color(color: str, text: str) -> str:
 
 def styled_input(label: str, color: str='blue') -> str:
     return input(in_color(color, label))
+
+def styled_error(label: str, color: str='red') -> str:
+    return print(in_color(color, label))
+
+def styled_warning(label: str, color: str='yellow') -> str:
+    return print(in_color(color, label))
+
+def styled_success(label: str, color: str='green') -> str:
+    return print(in_color(color, label))
