@@ -51,6 +51,7 @@ class Authenticate:
         next_btn = self.driver.find_element_by_xpath("//input[@id='idSIButton9']")
 
         if _is_initialized():
+            styled_warning(".selemrc located at /home. Parsing credentials...")
             self.email, self.passwd = list(_parse_selemrc().values())
             email_field.clear()
             email_field.send_keys(self.email, Keys.RETURN)
@@ -60,6 +61,8 @@ class Authenticate:
             passwd_field.clear()
             passwd_field.send_keys(self.passwd, Keys.RETURN)
         else:
+            styled_error("No .selemrc found in /home. Creating one...")
+            styled_warning("This is a one-time setup. Please enter your credentials.\n")
             self.email = self.verify_input("EMAIL, PHONE OR SKYPE: ", email_field, "//input[@name='loginfmt']")
             # next_btn = WebDriverWait(driver, 10).until(
             #         EC.element_to_be_clickable((By.XPATH, "//input[@id='idSIButton9']")))

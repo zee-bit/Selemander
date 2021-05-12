@@ -43,17 +43,26 @@ styled_success('\n━━━━━━━━━━━━━━━━━━━━�
 styled_success('\t\tLIST OF TEAMS')
 styled_success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 
-channels_container = driver.find_element_by_tag_name("channel-list")
-channels_list = channels_container.find_elements_by_class_name('team')
+teams_container = driver.find_element_by_tag_name("channel-list")
+teams_list = teams_container.find_elements_by_class_name('team')
 
-# channel-list is polluted with few channels having 'data-tid' attr as None
-channels_list = [ch for ch in channels_list if ch.get_attribute('data-tid') is not None]
+# team-list is polluted with few teams having 'data-tid' attr as None
+teams_list = [tm for tm in teams_list if tm.get_attribute('data-tid') is not None]
+teams_channel_mp = {}
 
-for channel in channels_list:
-    channel_name = channel.find_element_by_class_name("header-text").get_attribute('innerText')
-    # print(channel_name, channel.find_element_by_class_name("header-text"))
-    styled_success(f'  ▶ {channel_name}')
+for team in teams_list:
+    team.click()
+    team_header = team.find_element_by_class_name("header-text")
+    team_name = team_header.get_attribute('innerText')
+    # print(team)
+    channel_container = team.find_element_by_class_name('channels')
+    channel_list = channel_container.find_elements_by_tag_name('li')
+    teams_channel_mp[team_name] = channel_list
+    # print(team_name, team.find_element_by_class_name("header-text"))
+    styled_success(f'  ▶ {team_name}')
 
 styled_warning("\nSearching for ongoing meetings...")
+
+# print(teams_channel_mp)
 
 driver.quit()
