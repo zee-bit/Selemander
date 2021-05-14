@@ -20,9 +20,9 @@ from styles import in_color, styled_error, styled_input, styled_success, styled_
 ch_ops = Options()
 ch_ops.add_argument("--headless")
 
-driver = webdriver.Chrome(options=ch_ops)
-# driver = webdriver.Chrome()
-driver.implicitly_wait(20)
+# driver = webdriver.Chrome(options=ch_ops)
+driver = webdriver.Chrome()
+# driver.implicitly_wait(20)
 driver.get('https://teams.microsoft.com/')
 assert "Sign in to your account" in driver.title
 
@@ -74,17 +74,62 @@ for team in teams_list:
         channel_container = team.find_element_by_class_name('channels')
     channel_list = channel_container.find_elements_by_tag_name('li')
     for channel in channel_list:
+        is_meetings_in_channel = False
         channel_name = channel.find_element_by_tag_name("span").get_attribute("innerText")
 
-        styled_success(f'     {channel_name}')
+        styled_success(f'\t{channel_name}')
 
-        try:
-            active_call_marker = channel.find_element_by_tag_name("active-calls-counter")
-            styled_warning("     Found an ongoing meeting in this channel. Trying to join...")
-            channel.click()
-        except NoSuchElementException as ex:
-            # channel.click()
-            styled_error("     No ongoing meetings in this channel. Skipping...")
+        # driver.implicitly_wait(0)
+        active_call_marker = channel.find_elements_by_tag_name("active-calls-counter")
+        # driver.implicitly_wait(20)
+        if len(active_call_marker) == 0:
+            styled_error("\tNo ongoing meetings in this channel. Skipping...")
+        else:
+            styled_warning("\tFound an ongoing meeting in this channel. Trying to join...")
+            channel.find_element_by_xpath("//li/a").click()
+
+            # time.sleep(5)
+            message_container = driver.find_element_by_tag_name("message-list")
+            # print(message_container.get_attribute("innerHTML"))
+
+            # Reverse the message list array so that its easier to check from the last.
+            message_list = WebDriverWait(message_container, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "ts-message-list-item")))
+            # message_list = message_container.find_elements_by_xpath("//div[@class='ts-message-list-item']")[:-1]
+
+            # test1, test2 = message_list[0], message_list[len(message_list) - 1]
+            # print(len(message_list))
+            # print(test1.tag_name, test2.tag_name)
+            # print(test1.get_attribute("data-scroll-pos"), test2.get_attribute("data-scroll-pos"))
+
+            for msg in message_list:
+                # Look for messages with ongoing meetings and click the join button
+                ongoing_call = msg.find_elements_by_class_name("ts-ongoing-call-header")
+                if(len(ongoing_call) != 0):
+                    join_btn = ongoing_call.find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
+                    join_btn.click()
+                else:
+                    continue
+
+                # Configure presentation options from the meeting lobby. i.e.
+                # Switch off camera and microphone and join the meeting.
+                meeting_container = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "video-and-name-input")))
+                meeting_control_panel = meeting_container.find_element_by_xpath("//section[@class='controls-container']")
+                presentation_container = meeting_container.find_element_by_xpath("//div[@role='presentation']")
+
+                join_btn = meeting_control_panel.find_element_by_xpath("//button[@class='join-btn']")
+                camera_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-video']/div/button")))
+                mic_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-mute']/div/button")))
+
+                if(camera_toggle.get_attribute("aria-pressed") == 'false'):
+                    camera_toggle.click()
+                if(mic_toggle.get_attribute("aria-pressed") == 'false'):
+                    mic_toggle.click()
+                join_btn.click()
+                is_meetings_in_channel = True
+                # FIXME: Should we really break here to not search for further meetings?
+                break
+        if is_meetings_in_channel:
+            break
     print('\n')
 
 # print(teams_channel_mp)
@@ -97,4 +142,6 @@ for team in teams_list:
 #         channel_name = channel.find_element_by_tag_name("span").get_attribute("innerText")
 #         styled_warning(f"➔ # {team_info[0]} ▶ {channel_name}")
 
+# FIXME: We shouldn't quit the browser session. This will remove you from meeting as
+# soon as you join.
 driver.quit()
