@@ -13,8 +13,8 @@ from selenium.common.exceptions import (
     StaleElementReferenceException,
 )
 
-from auth import Authenticate
-from styles import in_color, styled_error, styled_input, styled_success, styled_warning
+from utils.auth import Authenticate
+from styles.pretty_print import in_color, styled_error, styled_input, styled_success, styled_warning
 
 # Create an Options object and pass headless argument
 ch_ops = Options()

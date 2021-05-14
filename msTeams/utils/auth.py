@@ -13,9 +13,9 @@ from selenium.common.exceptions import (
 )
 
 from typing import Any
-from styles import (
+from styles.pretty_print import (
     in_color, styled_input, styled_error, styled_warning, styled_success)
-from config import _is_initialized, _write_selemrc, _parse_selemrc
+from utils.config import _is_initialized, _write_selemrc, _parse_selemrc
 
 
 class element_has_css_class(object):

@@ -8,7 +8,7 @@ import stat
 import configparser
 
 from typing import Any, Dict
-from styles import in_color
+from styles.pretty_print import in_color
 
 SELEMRC_DEST = "~/.selemrc"
 
