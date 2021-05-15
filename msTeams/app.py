@@ -40,97 +40,116 @@ except TimeoutException as ex:
 is_teams_clickable = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'app-bar-2a84919f-59d8-4441-a975-2a8c2643b741')))
 is_teams_clickable.click()
 
+
 styled_success('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 styled_success('\t\tYOUR TEAMS')
 styled_success('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 
-teams_container = driver.find_element_by_tag_name("channel-list")
-teams_list = teams_container.find_elements_by_class_name('team')
-# print(teams_list)
+is_meeting_joined = False
 
-# team-list is polluted with few teams having 'data-tid' attr as None
-teams_list = [tm for tm in teams_list if tm.tag_name == 'li']
-# print(teams_list[0].tag_name, teams_list[1].tag_name)
-teams_channel_mp = OrderedDict()
+def search_and_join_meetings():
+    teams_container = driver.find_element_by_tag_name("channel-list")
+    teams_list = teams_container.find_elements_by_class_name('team')
+    # print(teams_list)
 
-for team in teams_list:
-    # driver.execute_script("arguments[0].setAttribute('aria-expanded', true)", team)
-    # time.sleep(1)
-    # btn = WebDriverWait(team, 10).until(EC.element_to_be_clickable((By.XPATH, "//h3/a[@data-tid]")))
-    btn = team.find_element_by_tag_name("a")
-    # print(btn.tag_name, btn.get_attribute('data-tid'), team.get_attribute("aria-expanded"))
-    btn.click()
-    if team.get_attribute('aria-expanded') == 'false':
-        driver.execute_script("arguments[0].click()", btn)
-    team_header = team.find_element_by_class_name("header-text")
-    team_name = team_header.get_attribute('innerText')
+    # team-list is polluted with few teams having 'data-tid' attr as None
+    teams_list = [tm for tm in teams_list if tm.tag_name == 'li']
+    # print(teams_list[0].tag_name, teams_list[1].tag_name)
+    teams_channel_mp = OrderedDict()
 
-    styled_success(f' ▶ {team_name}')
+    for team in teams_list:
+        # driver.execute_script("arguments[0].setAttribute('aria-expanded', true)", team)
+        # time.sleep(1)
+        # btn = WebDriverWait(team, 10).until(EC.element_to_be_clickable((By.XPATH, "//h3/a[@data-tid]")))
+        btn = team.find_element_by_tag_name("a")
+        btn.click()
 
-    try:
-        channel_container = team.find_element_by_class_name('channels')
-    except NoSuchElementException as ex:
-        driver.execute_script("arguments[0].setAttribute('aria-expanded', true)", team)
-        channel_container = team.find_element_by_class_name('channels')
-    channel_list = channel_container.find_elements_by_tag_name('li')
-    for channel in channel_list:
-        is_meetings_in_channel = False
-        channel_name = channel.find_element_by_tag_name("span").get_attribute("innerText")
+        # If the above click didnt work, then explicitly modify the attribute
+        if team.get_attribute('aria-expanded') == 'false':
+            driver.execute_script("arguments[0].click()", btn)
 
-        styled_success(f'\t{channel_name}')
+        team_header = team.find_element_by_class_name("header-text")
+        team_name = team_header.get_attribute('innerText')
 
-        # driver.implicitly_wait(0)
-        active_call_marker = channel.find_elements_by_tag_name("active-calls-counter")
-        # driver.implicitly_wait(20)
-        if len(active_call_marker) == 0:
-            styled_error("\tNo ongoing meetings in this channel. Skipping...")
-        else:
-            styled_warning("\tFound an ongoing meeting in this channel. Trying to join...")
-            channel.find_element_by_xpath("//li/a").click()
+        styled_success(f' ▶ {team_name}')
 
-            # time.sleep(5)
-            message_container = driver.find_element_by_tag_name("message-list")
-            # print(message_container.get_attribute("innerHTML"))
+        try:
+            channel_container = team.find_element_by_class_name('channels')
+        except NoSuchElementException as ex:
+            driver.execute_script("arguments[0].setAttribute('aria-expanded', true)", team)
+            channel_container = team.find_element_by_class_name('channels')
+        channel_list = channel_container.find_elements_by_tag_name('li')
 
-            # Reverse the message list array so that its easier to check from the last.
-            message_list = WebDriverWait(message_container, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "ts-message-list-item")))
-            # message_list = message_container.find_elements_by_xpath("//div[@class='ts-message-list-item']")[:-1]
+        for channel in channel_list:
+            is_meetings_in_channel = False
+            channel_name = channel.find_element_by_tag_name("span").get_attribute("innerText")
 
-            # test1, test2 = message_list[0], message_list[len(message_list) - 1]
-            # print(len(message_list))
-            # print(test1.tag_name, test2.tag_name)
-            # print(test1.get_attribute("data-scroll-pos"), test2.get_attribute("data-scroll-pos"))
+            styled_success(f'\t{channel_name}')
 
-            for msg in message_list:
-                # Look for messages with ongoing meetings and click the join button
-                ongoing_call = msg.find_elements_by_class_name("ts-ongoing-call-header")
-                if(len(ongoing_call) != 0):
-                    join_btn = ongoing_call.find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
+            # driver.implicitly_wait(0)
+            active_call_marker = channel.find_elements_by_tag_name("active-calls-counter")
+            # driver.implicitly_wait(20)
+            if len(active_call_marker) == 0:
+                styled_error("\tNo ongoing meetings in this channel. Skipping...")
+            else:
+                styled_warning("\tFound an ongoing meeting in this channel. Trying to join...")
+                channel.find_element_by_xpath("//li/a").click()
+
+                # time.sleep(5)
+                message_container = driver.find_element_by_tag_name("message-list")
+                # print(message_container.get_attribute("innerHTML"))
+
+                # Reverse the message list array so that its easier to check from the last.
+                message_list = WebDriverWait(message_container, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "ts-message-list-item")))
+                # message_list = message_container.find_elements_by_xpath("//div[@class='ts-message-list-item']")[:-1]
+
+                # test1, test2 = message_list[0], message_list[len(message_list) - 1]
+                # print(len(message_list))
+                # print(test1.tag_name, test2.tag_name)
+                # print(test1.get_attribute("data-scroll-pos"), test2.get_attribute("data-scroll-pos"))
+
+                for msg in message_list:
+                    # Look for messages with ongoing meetings and click the join button
+                    ongoing_call = msg.find_elements_by_class_name("ts-ongoing-call-header")
+                    if(len(ongoing_call) != 0):
+                        join_btn = ongoing_call.find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
+                        join_btn.click()
+                    else:
+                        continue
+
+                    # Configure presentation options from the meeting lobby. i.e.
+                    # Switch off camera and microphone and join the meeting.
+                    meeting_container = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "video-and-name-input")))
+                    meeting_control_panel = meeting_container.find_element_by_xpath("//section[@class='controls-container']")
+                    presentation_container = meeting_container.find_element_by_xpath("//div[@role='presentation']")
+
+                    join_btn = meeting_control_panel.find_element_by_xpath("//button[@class='join-btn']")
+                    camera_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-video']/div/button")))
+                    mic_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-mute']/div/button")))
+
+                    if(camera_toggle.get_attribute("aria-pressed") == 'false'):
+                        camera_toggle.click()
+                    if(mic_toggle.get_attribute("aria-pressed") == 'false'):
+                        mic_toggle.click()
                     join_btn.click()
-                else:
-                    continue
-
-                # Configure presentation options from the meeting lobby. i.e.
-                # Switch off camera and microphone and join the meeting.
-                meeting_container = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "video-and-name-input")))
-                meeting_control_panel = meeting_container.find_element_by_xpath("//section[@class='controls-container']")
-                presentation_container = meeting_container.find_element_by_xpath("//div[@role='presentation']")
-
-                join_btn = meeting_control_panel.find_element_by_xpath("//button[@class='join-btn']")
-                camera_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-video']/div/button")))
-                mic_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-mute']/div/button")))
-
-                if(camera_toggle.get_attribute("aria-pressed") == 'false'):
-                    camera_toggle.click()
-                if(mic_toggle.get_attribute("aria-pressed") == 'false'):
-                    mic_toggle.click()
-                join_btn.click()
-                is_meetings_in_channel = True
-                # FIXME: Should we really break here to not search for further meetings?
+                    is_meetings_in_channel = True
+                    is_meeting_joined = True
+                    # FIXME: Should we really break here and not search in further channels?
+                    break
+            # FIXME: Should we really break here and not search in further teams?
+            if is_meetings_in_channel:
                 break
-        if is_meetings_in_channel:
-            break
-    print('\n')
+        print('\n')
+
+# Run the search for the first time
+search_and_join_meetings()
+
+# If no ongoing meetings found, then re-search after 10 mins(?)
+while not is_meeting_joined:
+    styled_warning("No meetings were found. Re-searching in 600 secs")
+    time.sleep(60)
+    styled_warning("Initiating search...")
+    search_and_join_meetings()
 
 # print(teams_channel_mp)
 
@@ -144,4 +163,4 @@ for team in teams_list:
 
 # FIXME: We shouldn't quit the browser session. This will remove you from meeting as
 # soon as you join.
-driver.quit()
+# driver.quit()
