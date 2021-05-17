@@ -76,6 +76,7 @@ class Authenticate:
             styled_warning(is_creds_stored)
 
         styled_success("\nAuthentication successful. You are now logged in!!")
+        styled_warning("Waiting for control to be passed to app...\n")
 
         no_btn = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, "idBtn_Back"))

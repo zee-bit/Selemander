@@ -100,7 +100,7 @@ def search_and_join_meetings():
                 # print(message_container.get_attribute("innerHTML"))
 
                 # Reverse the message list array so that its easier to check from the last.
-                message_list = WebDriverWait(message_container, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "ts-message-list-item")))
+                message_list = WebDriverWait(message_container, 100).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "ts-message-list-item")))
                 # message_list = message_container.find_elements_by_xpath("//div[@class='ts-message-list-item']")[:-1]
 
                 # test1, test2 = message_list[0], message_list[len(message_list) - 1]
@@ -112,8 +112,14 @@ def search_and_join_meetings():
                     # Look for messages with ongoing meetings and click the join button
                     ongoing_call = msg.find_elements_by_class_name("ts-ongoing-call-header")
                     if(len(ongoing_call) != 0):
-                        join_btn = ongoing_call.find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
-                        join_btn.click()
+                        # join_btn = WebDriverWait(ongoing_call[0], 10).until(EC.element_to_be_clickable((By.XPATH, "//calling-join-button/button[@class='ts-calling-join-button']")))
+                        # join_btn = ongoing_call[0].find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
+                        join_btn_outer = ongoing_call[0].find_element_by_tag_name("calling-join-button")
+                        join_btn = join_btn_outer.find_element_by_tag_name("button")
+                        print(join_btn.tag_name, join_btn.get_attribute("innerHTML"))
+                        # join_btn.click()
+                        driver.execute_script("arguments[0].click();", join_btn)
+                        # webdriver.ActionChains(driver).move_to_element(element ).click(element ).perform()
                     else:
                         continue
 
