@@ -19,9 +19,17 @@ from styles.pretty_print import in_color, styled_error, styled_input, styled_suc
 # Create an Options object and pass headless argument
 ch_ops = Options()
 ch_ops.add_argument("--headless")
+ch_ops.add_argument("--use-fake-device-for-media-stream")
+ch_ops.add_argument("--use-fake-ui-for-media-stream")
 
-# driver = webdriver.Chrome(options=ch_ops)
-driver = webdriver.Chrome()
+# Pass the argument 1 to allow and 2 to block
+ch_ops.add_experimental_option("prefs", { \
+    "profile.default_content_setting_values.media_stream_mic": 1,
+    "profile.default_content_setting_values.media_stream_camera": 1
+  })
+
+driver = webdriver.Chrome(options=ch_ops)
+# driver = webdriver.Chrome()
 # driver.implicitly_wait(20)
 driver.get('https://teams.microsoft.com/')
 assert "Sign in to your account" in driver.title
@@ -153,7 +161,7 @@ search_and_join_meetings()
 # If no ongoing meetings found, then re-search after 10 mins(?)
 while not is_meeting_joined:
     styled_warning("No meetings were found. Re-searching in 600 secs")
-    time.sleep(60)
+    time.sleep(600)
     styled_warning("Initiating search...")
     search_and_join_meetings()
 
