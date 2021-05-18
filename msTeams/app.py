@@ -18,7 +18,7 @@ from styles.pretty_print import in_color, styled_error, styled_input, styled_suc
 
 # Create an Options object and pass headless argument
 ch_ops = Options()
-ch_ops.add_argument("--headless")
+# ch_ops.add_argument("--headless")
 ch_ops.add_argument("--use-fake-device-for-media-stream")
 ch_ops.add_argument("--use-fake-ui-for-media-stream")
 
@@ -124,7 +124,7 @@ def search_and_join_meetings():
                         # join_btn = ongoing_call[0].find_element_by_xpath("//calling-join-button/button[@class='ts-calling-join-button']")
                         join_btn_outer = ongoing_call[0].find_element_by_tag_name("calling-join-button")
                         join_btn = join_btn_outer.find_element_by_tag_name("button")
-                        print(join_btn.tag_name, join_btn.get_attribute("innerHTML"))
+                        # print(join_btn.tag_name, join_btn.get_attribute("innerHTML"))
                         # join_btn.click()
                         driver.execute_script("arguments[0].click();", join_btn)
                         # webdriver.ActionChains(driver).move_to_element(element ).click(element ).perform()
@@ -137,15 +137,18 @@ def search_and_join_meetings():
                     meeting_control_panel = meeting_container.find_element_by_xpath("//section[@class='controls-container']")
                     presentation_container = meeting_container.find_element_by_xpath("//div[@role='presentation']")
 
-                    join_btn = meeting_control_panel.find_element_by_xpath("//button[@class='join-btn']")
+                    join_btn = meeting_control_panel.find_element_by_xpath("//button[contains(@class, 'join-btn')]")
                     camera_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-video']/div/button")))
                     mic_toggle = WebDriverWait(presentation_container, 10).until(EC.element_to_be_clickable((By.XPATH, "//toggle-button[@data-tid='toggle-mute']/div/button")))
 
-                    if(camera_toggle.get_attribute("aria-pressed") == 'false'):
-                        camera_toggle.click()
-                    if(mic_toggle.get_attribute("aria-pressed") == 'false'):
-                        mic_toggle.click()
+                    if(camera_toggle.get_attribute("aria-pressed") == 'true'):
+                        # camera_toggle.click()
+                        driver.execute_script("arguments[0].click();", camera_toggle)
+                    if(mic_toggle.get_attribute("aria-pressed") == 'true'):
+                        # mic_toggle.click()
+                        driver.execute_script("arguments[0].click();", mic_toggle)
                     join_btn.click()
+                    styled_success("Meeting joined successfully.")
                     is_meetings_in_channel = True
                     is_meeting_joined = True
                     # FIXME: Should we really break here and not search in further channels?
@@ -153,6 +156,8 @@ def search_and_join_meetings():
             # FIXME: Should we really break here and not search in further teams?
             if is_meetings_in_channel:
                 break
+        if is_meeting_joined:
+            break
         print('\n')
 
 # Run the search for the first time
