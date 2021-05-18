@@ -1,5 +1,15 @@
 # Selemander - MSTeams
 
+## Set-up:
+1. Download the latest version of `chromedriver` from [this](https://sites.google.com/a/chromium.org/chromedriver/downloads) site.
+2. Move the downloaded driver executable to `/opt/WebDriver/bin`.
+3. Add the executable to your `$PATH`. For this:
+    - On MacOS/Linux:
+      - In a terminal instance, type: `export PATH=$PATH:/opt/WebDriver/bin >> ~/.profile`
+    - On WSL(Windows):
+      - In a terminal instance, type: `setx /m path "%path%;C:\WebDriver\bin\"`
+4. The webdriver should be successfully set-up by now. Proceed with the below steps to install dependencies and run the project.
+
 ## Installation:
 
 #### Method 1:
